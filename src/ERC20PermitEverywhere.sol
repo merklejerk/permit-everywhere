@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.15;
 
 /// @title ERC20PermitEverywhere
 /// @notice Enables permit-style approvals for all ERC20 tokens, 
