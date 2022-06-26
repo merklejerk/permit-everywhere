@@ -1,58 +1,66 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8;
+pragma solidity >=0.8.13;
 
+/// @title ERC20PermitEverywhere
+/// @notice Enables permit-style approvals for all ERC20 tokens, 
+/// regardless of whether they implement EIP2612 or not.
+/// @author Modified from merklejerk (https://github.com/merklejerk/permit-everywhere)
 contract ERC20PermitEverywhere {
+    bytes32 private immutable DOMAIN_SEPARATOR;
+    bytes32 private immutable TRANSFER_PERMIT_TYPEHASH;
+
     struct PermitTransferFrom {
-        IERC20 token;
+        address token;
         address spender;
         uint256 maxAmount;
         uint256 deadline;
     }
 
     struct Signature {
+        uint8 v;
         bytes32 r;
         bytes32 s;
-        uint8 v;
     }
 
-    bytes32 public immutable DOMAIN_SEPARATOR;
-    bytes32 public immutable TRANSFER_PERMIT_TYPEHASH;
-
-    // Owner -> current nonce.
-    mapping (address => uint256) public currentNonce;
+    /// @dev Owner -> current nonce.
+    mapping(address => uint256) public currentNonce;
 
     constructor() {
-        uint256 chainId;
-        assembly { chainId := chainid() }
         DOMAIN_SEPARATOR = keccak256(abi.encode(
             keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
             keccak256(bytes('ERC20PermitEverywhere')),
-            keccak256(bytes('1.0.0')),
-            chainId,
+            keccak256('1.0.0'),
+            block.chainid,
             address(this)
         ));
+
         TRANSFER_PERMIT_TYPEHASH =
             keccak256('PermitTransferFrom(address token,address spender,uint256 maxAmount,uint256 deadline,uint256 nonce)');
     }
 
     function executePermitTransferFrom(
-        address owner,
+        address from,
         address to,
         uint256 amount,
-        PermitTransferFrom memory permit,
-        Signature memory sig
+        PermitTransferFrom calldata permit,
+        Signature calldata sig
     )
         external
     {
         require(msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
         require(permit.deadline >= block.timestamp, 'PERMIT_EXPIRED');
         require(permit.maxAmount >= amount, 'EXCEEDS_PERMIT_AMOUNT');
-        uint256 nonce = currentNonce[owner]++;
-        require(owner == getSigner(hashPermit(permit, nonce), sig), 'INVALID_SIGNER');
-        _transferFrom(permit.token, owner, to, amount);
+
+        // Unchecked because the only math done is incrementing
+        // the nonce which cannot realistically overflow.
+        unchecked {
+            require(from == getSigner(hashPermit(permit, currentNonce[from]++), sig), 'INVALID_SIGNER');
+        }
+
+        _transferFrom(permit.token, from, to, amount);
     }
 
-    function hashPermit(PermitTransferFrom memory permit, uint256 nonce)
+    function hashPermit(PermitTransferFrom calldata permit, uint256 nonce)
         public
         view
         returns (bytes32 h)
@@ -78,37 +86,42 @@ contract ERC20PermitEverywhere {
         }
     }
 
-    function getSigner(bytes32 hash, Signature memory sig) private pure returns (address signer) {
+    function getSigner(bytes32 hash, Signature calldata sig) private pure returns (address signer) {
         signer = ecrecover(hash, sig.v, sig.r, sig.s);
         require(signer != address(0), 'INVALID_SIGNATURE');
     }
 
-    function _transferFrom(IERC20 token, address owner, address to, uint256 amount) private {
-        bytes4 transferFromSelector = IERC20.transferFrom.selector;
-        bool s;
+    function _transferFrom(address token, address from, address to, uint256 amount) private {
         assembly {
-            let p:= mload(0x40)
-            mstore(p, transferFromSelector)
-            mstore(add(p, 0x04), owner)
-            mstore(add(p, 0x24), to)
-            mstore(add(p, 0x44), amount)
-            s:= call(gas(), token, 0, p, 0x64, 0, 0)
-            if iszero(s) {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
-            }
-            if gt(returndatasize(), 0x19) {
-                returndatacopy(p, 0, 0x20)
-                s := and(not(iszero(mload(p))), 1)
-            }
-        }
-        require(s, 'TRANSFER_FAILED');
-    }
-}
+            // We'll write our calldata to this slot below, but restore it later.
+            let memPointer := mload(0x40)
 
-interface IERC20 {
-    function balanceOf(address owner) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function transfer(address to, uint256 amount) external returns (bool);
-    function transferFrom(address owner, address to, uint256 amount) external returns (bool);
+            // Write the abi-encoded calldata into memory, beginning with the function selector.
+            mstore(0x00, 0x23b872dd)
+            mstore(0x20, from) // Append the "from" argument.
+            mstore(0x40, to) // Append the "to" argument.
+            mstore(0x60, amount) // Append the "amount" argument.
+
+            if iszero(
+                and(
+                    // Set success to whether the call reverted, if not we check it either
+                    // returned exactly 1 (can't just be non-zero data), or had no return data.
+                    or(eq(mload(0x00), 1), iszero(returndatasize())),
+                    // We use 0x64 because that's the total length of our calldata (0x04 + 0x20 * 3)
+                    // Counterintuitively, this call() must be positioned after the or() in the
+                    // surrounding and() because and() evaluates its arguments from right to left.
+                    call(gas(), token, 0, 0x1c, 0x64, 0x00, 0x20)
+                )
+            ) {
+                mstore(0x00, hex"08c379a0") // Function selector of the error method.
+                mstore(0x04, 0x20) // Offset of the error string.
+                mstore(0x24, 20) // Length of the error string.
+                mstore(0x44, "TRANSFER_FROM_FAILED") // The error string.
+                revert(0x00, 0x64) // Revert with (offset, size).
+            }
+
+            mstore(0x60, 0) // Restore the zero slot to zero.
+            mstore(0x40, memPointer) // Restore the memPointer.
+        }
+    }
 }
