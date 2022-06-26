@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8;
 
 contract ERC20PermitEverywhere {
@@ -18,15 +18,14 @@ contract ERC20PermitEverywhere {
     bytes32 public immutable TRANSFER_PERMIT_TYPEHASH;
 
     // Owner -> current nonce.
-    mapping (address => uint256) currentNonce;
+    mapping (address => uint256) public currentNonce;
 
     constructor() {
         uint256 chainId;
         assembly { chainId := chainid() }
         DOMAIN_TYPE_HASH = keccak256(abi.encode(
             keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
-            name,
-            type(ERC20PermitEverywhere).contractName,
+            type(ERC20PermitEverywhere).name,
             '1.0.0',
             chainId,
             address(this)
@@ -39,18 +38,19 @@ contract ERC20PermitEverywhere {
         address owner,
         address to,
         uint256 amount,
-        TransferPermit memory permit,
+        PermitTransferFrom memory permit,
         Signature memory sig
     )
         external
     {
-        require(permit.sender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
+        require(permit.spender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
         require(permit.maxAmount >= amount, 'EXCEEDS_PERMIT_AMOUNT');
-        require(owner == getSigner(hashPermit(permit), sig), 'INVALID_SIGNER');
+        uint256 nonce = currentNonce[owner]++;
+        require(owner == getSigner(hashPermit(permit, nonce), sig), 'INVALID_SIGNER');
         _transferFrom(permit.token, owner, to, amount);
     }
 
-    function hashPermit(PermitTransferFrom memory permit)
+    function hashPermit(PermitTransferFrom memory permit, uint256 nonce)
         public
         view
         returns (bytes32 h)
@@ -61,10 +61,13 @@ contract ERC20PermitEverywhere {
             if lt(permit, 0x60)  {
                 invalid()
             }
-            let c := mload(sub(permit, 0x20))
+            let c1 := mload(sub(permit, 0x20))
+            let c2 := mload(add(permit, 0x60))
             mstore(sub(permit, 0x20), th)
-            let ph := keccak256(permit, 0x60)
-            mstore(sub(permit, 0x20), c)
+            mstore(add(permit, 0x60), nonce)
+            let ph := keccak256(permit, 0x80)
+            mstore(sub(permit, 0x20), c1)
+            mstore(add(permit, 0x60), c2)
             let p:= mload(0x40)
             mstore(p, 0x1901000000000000000000000000000000000000000000000000000000000000)
             mstore(add(p, 0x02), dh)
@@ -74,16 +77,11 @@ contract ERC20PermitEverywhere {
     }
 
     function getSigner(bytes32 hash, Signature memory sig) private pure returns (address signer) {
-        signer = ecrecover(
-            hash,
-            r,
-            s,
-            v
-        );
+        signer = ecrecover(hash, sig.v, sig.r, sig.s);
         require(signer != address(0), 'INVALID_SIGNATURE');
     }
 
-    function _transferFrom(IERC20 token, address owner, address to, uint256 amount) {
+    function _transferFrom(IERC20 token, address owner, address to, uint256 amount) private {
         bytes4 transferFromSelector = IERC20.transferFrom.selector;
         bool s;
         assembly {
@@ -99,9 +97,16 @@ contract ERC20PermitEverywhere {
             }
             if gt(returndatasize(), 0x19) {
                 returndatacopy(p, 0, 0x20)
-                s := and(not(mload(p), 0), 1)
+                s := and(not(iszero(mload(p))), 1)
             }
         }
         require(s, 'TRANSFER_FAILED');
     }
+}
+
+interface IERC20 {
+    function balanceOf(address owner) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address owner, address to, uint256 amount) external returns (bool);
 }
