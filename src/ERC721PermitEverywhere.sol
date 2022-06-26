@@ -71,7 +71,7 @@ contract ERC721PermitEverywhere {
         bytes32 dh = DOMAIN_TYPE_HASH;
         bytes32 th = TRANSFER_PERMIT_TYPEHASH;
         assembly {
-            if lt(permit, 0x60)  {
+            if lt(permit, 0x20)  {
                 invalid()
             }
             let c1 := mload(sub(permit, 0x20))
