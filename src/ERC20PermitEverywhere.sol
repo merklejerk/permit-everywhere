@@ -15,7 +15,7 @@ contract ERC20PermitEverywhere {
         uint8 v;
     }
 
-    bytes32 public immutable DOMAIN_TYPE_HASH;
+    bytes32 public immutable DOMAIN_SEPARATOR;
     bytes32 public immutable TRANSFER_PERMIT_TYPEHASH;
 
     // Owner -> current nonce.
@@ -24,10 +24,10 @@ contract ERC20PermitEverywhere {
     constructor() {
         uint256 chainId;
         assembly { chainId := chainid() }
-        DOMAIN_TYPE_HASH = keccak256(abi.encode(
+        DOMAIN_SEPARATOR = keccak256(abi.encode(
             keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
-            type(ERC20PermitEverywhere).name,
-            '1.0.0',
+            keccak256(bytes('ERC20PermitEverywhere')),
+            keccak256(bytes('1.0.0')),
             chainId,
             address(this)
         ));
@@ -57,7 +57,7 @@ contract ERC20PermitEverywhere {
         view
         returns (bytes32 h)
     {
-        bytes32 dh = DOMAIN_TYPE_HASH;
+        bytes32 dh = DOMAIN_SEPARATOR;
         bytes32 th = TRANSFER_PERMIT_TYPEHASH;
         assembly {
             if lt(permit, 0x20)  {
