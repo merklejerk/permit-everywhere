@@ -4,8 +4,8 @@ PermitEverywhere is a set of contracts that enable permit style approvals for al
 Users simply need set an allowance on the `ERC20PermitEverywhere` contract (for ERC20 assets) or the `ERC721PermitEverywhere` contract (for ERC721 assets). Afterwards, protocols can accept a signed permit message from the user, which they can pass into a PermitEverywhere contract to securely transfer funds without an explicit allowance set on their own contracts.
 
 ## Addresses
-- `ERC20PermitEverywhere` is deployed at `0xE20eD896FB1abd07D3B1a16aD9Ecf7D26B6a7f6d` on Polygon, Optimism, and Ethereum (in a bit).
-- `ERC721PermitEverywhere` is deployed at `0xE721A26F16C0e90EBe92Da92F8687f89c3168552` on Polygon, Optimism, and Ethereum (in a bit).
+- `ERC20PermitEverywhere` is deployed at `0xE20eD896FB1abd07D3B1a16aD9Ecf7D26B6a7f6d` on Polygon, Optimism, and Ethereum.
+- `ERC721PermitEverywhere` is deployed at `0xE721A26F16C0e90EBe92Da92F8687f89c3168552` on Polygon, Optimism, and Ethereum.
 
 ## Permit Messages
 Permit messages are implemented EIP712 so they can be signed in a human readable fashion through popular web3 wallets.
