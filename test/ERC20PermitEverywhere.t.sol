@@ -32,6 +32,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(dummyToken)),
             address(spender),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.prank(owner);
@@ -57,6 +58,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(nsDummyToken)),
             address(spender),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.prank(owner);
@@ -82,6 +84,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(dummyToken)),
             address(spender),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.expectRevert('EXCEEDS_PERMIT_AMOUNT');
@@ -107,6 +110,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(dummyToken)),
             address(_randomAddress()),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.expectRevert('SPENDER_NOT_PERMITTED');
@@ -132,6 +136,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(dummyToken)),
             address(spender),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.expectRevert('INVALID_SIGNER');
@@ -157,6 +162,7 @@ contract ERC20PermitEverywhereTest is Test {
             IERC20(address(dummyToken)),
             address(spender),
             0.5e18,
+            block.timestamp,
             testContract.currentNonce(owner)
         );
         vm.prank(owner);
@@ -182,6 +188,7 @@ contract ERC20PermitEverywhereTest is Test {
         IERC20 token,
         address spender_,
         uint256 maxAmount,
+        uint256 deadline,
         uint256 nonce
     )
         private
@@ -193,6 +200,7 @@ contract ERC20PermitEverywhereTest is Test {
         permit.token = token;
         permit.spender = spender_;
         permit.maxAmount = maxAmount;
+        permit.deadline = deadline;
         bytes32 h = testContract.hashPermit(permit, nonce);
         (sig.v, sig.r, sig.s) = vm.sign(uint256(ownerKey), h);
     }

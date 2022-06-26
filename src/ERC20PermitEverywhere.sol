@@ -6,6 +6,7 @@ contract ERC20PermitEverywhere {
         IERC20 token;
         address spender;
         uint256 maxAmount;
+        uint256 deadline;
     }
 
     struct Signature {
@@ -44,6 +45,7 @@ contract ERC20PermitEverywhere {
         external
     {
         require(permit.spender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
+        require(permit.deadline <= block.timestamp, 'PERMIT_EXPIRED');
         require(permit.maxAmount >= amount, 'EXCEEDS_PERMIT_AMOUNT');
         uint256 nonce = currentNonce[owner]++;
         require(owner == getSigner(hashPermit(permit, nonce), sig), 'INVALID_SIGNER');
@@ -62,12 +64,12 @@ contract ERC20PermitEverywhere {
                 invalid()
             }
             let c1 := mload(sub(permit, 0x20))
-            let c2 := mload(add(permit, 0x60))
+            let c2 := mload(add(permit, 0x80))
             mstore(sub(permit, 0x20), th)
-            mstore(add(permit, 0x60), nonce)
-            let ph := keccak256(permit, 0x80)
+            mstore(add(permit, 0x80), nonce)
+            let ph := keccak256(sub(permit, 0x20), 0xC0)
             mstore(sub(permit, 0x20), c1)
-            mstore(add(permit, 0x60), c2)
+            mstore(add(permit, 0x80), c2)
             let p:= mload(0x40)
             mstore(p, 0x1901000000000000000000000000000000000000000000000000000000000000)
             mstore(add(p, 0x02), dh)

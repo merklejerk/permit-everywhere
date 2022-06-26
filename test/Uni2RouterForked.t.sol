@@ -18,7 +18,7 @@ contract Uni2RouterForkedTest is Test {
     bytes32 ownerKey;
     address owner;
 
-    function setUp() public {
+    function setUp() onlyForked public {
         ownerKey = _randomBytes32();
         owner = vm.addr(uint256(ownerKey));
         uint256 bal = WBTC.balanceOf(TOKEN_WHALE);
@@ -28,14 +28,26 @@ contract Uni2RouterForkedTest is Test {
         WBTC.approve(address(pe), type(uint256).max);
     }
 
-    function testFork_works() public {
+    modifier onlyForked() {
+        if (block.number > 1e6) {
+            _;
+        }
+    }
+
+    function testFork_works() onlyForked public {
         address[] memory path = new address[](2);
         path[0] = address(WBTC);
         path[1] = address(WETH);
         (
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory signature
-        ) = _createSignedPermit(WBTC, address(router), type(uint256).max, pe.currentNonce(owner));
+        ) = _createSignedPermit(
+            WBTC,
+            address(router),
+            type(uint256).max,
+            block.timestamp,
+            pe.currentNonce(owner)
+        );
         vm.prank(owner);
         (uint256[] memory amounts) = router.swapExactTokensForETH(
             1e8,
@@ -53,6 +65,7 @@ contract Uni2RouterForkedTest is Test {
         ERC20 token,
         address spender_,
         uint256 maxAmount,
+        uint256 deadline,
         uint256 nonce
     )
         private
@@ -64,6 +77,7 @@ contract Uni2RouterForkedTest is Test {
         permit.token = IERC20(address(token));
         permit.spender = spender_;
         permit.maxAmount = maxAmount;
+        permit.deadline = deadline;
         bytes32 h = pe.hashPermit(permit, nonce);
         (sig.v, sig.r, sig.s) = vm.sign(uint256(ownerKey), h);
     }
