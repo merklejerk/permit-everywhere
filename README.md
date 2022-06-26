@@ -69,3 +69,32 @@ struct PermitTransferFrom {
     uint256 nonce;
 }
 ```
+
+## Executing Permit Messages
+
+For ERC20 permits, protocols can burn a user's permit message and execute an eligible transfer by calling `ERC20PermitEverywhere.executePermitTransferFrom()`, which is declared as follows:
+
+```solidity
+    function executePermitTransferFrom(
+        address owner,
+        address to,
+        uint256 tokenId,
+        PermitTransferFrom memory permit,
+        Signature memory sig
+    )
+        external;
+```
+
+For ERC721 permits, protocols can burn a user's permit message and execute an eligible transfer by calling either `ERC721PermitEverywhere.executePermitTransferFrom()` or `ERC721PermitEverywhere.executePermitSafeTransferFrom()`, which are declared as follows:
+
+```solidity
+    function executePermitSafeTransferFrom(
+        address owner,
+        address to,
+        uint256 tokenId,
+        bytes memory data,
+        PermitTransferFrom memory permit,
+        Signature memory sig
+    )
+        external;
+```
