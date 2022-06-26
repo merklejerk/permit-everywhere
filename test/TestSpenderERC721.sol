@@ -19,7 +19,6 @@ contract TestSpenderERC721 {
     )
         external
     {
-        require(permit.token == token && permit.tokenId == tokenId, 'WRONG_TOKEN');
         PERMIT_EVERYWHERE.executePermitTransferFrom(
             msg.sender,
             to,
@@ -38,7 +37,6 @@ contract TestSpenderERC721 {
     )
         external
     {
-        require(permit.token == token && permit.tokenId == tokenId, 'WRONG_TOKEN');
         PERMIT_EVERYWHERE.executePermitSafeTransferFrom(
             msg.sender,
             to,

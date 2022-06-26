@@ -45,8 +45,8 @@ contract ERC721PermitEverywhere {
     )
         external
     {
-        _consumePermit(owner, permit, sig);
-        permit.token.transferFrom(owner, to, permit.tokenId);
+        _consumePermit(owner, tokenId, permit, sig);
+        permit.token.transferFrom(owner, to, tokenId);
     }
 
     function executePermitSafeTransferFrom(
@@ -59,8 +59,8 @@ contract ERC721PermitEverywhere {
     )
         external
     {
-        _consumePermit(owner, permit, sig);
-        permit.token.safeTransferFrom(owner, to, permit.tokenId, data);
+        _consumePermit(owner, tokenId, permit, sig);
+        permit.token.safeTransferFrom(owner, to, tokenId, data);
     }
 
     function hashPermit(PermitTransferFrom memory permit, uint256 nonce)
@@ -78,7 +78,7 @@ contract ERC721PermitEverywhere {
             let c2 := mload(add(permit, 0xA0))
             mstore(sub(permit, 0x20), th)
             mstore(add(permit, 0xA0), nonce)
-            let ph := keccak256(sub(permit, 0x20), 0x100)
+            let ph := keccak256(sub(permit, 0x20), 0xE0)
             mstore(sub(permit, 0x20), c1)
             mstore(add(permit, 0xA0), c2)
             let p:= mload(0x40)
@@ -91,12 +91,14 @@ contract ERC721PermitEverywhere {
 
     function _consumePermit(
         address owner,
+        uint256 tokenId,
         PermitTransferFrom memory permit,
         Signature memory sig
     )
         private
     {
         require(permit.spender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
+        require(permit.allowAnyTokenId || permit.tokenId == tokenId, 'TOKEN_ID_NOT_PERMITTED');
         require(permit.deadline <= block.timestamp, 'PERMIT_EXPIRED');
         uint256 nonce = currentNonce[owner]++;
         require(owner == getSigner(hashPermit(permit, nonce), sig), 'INVALID_SIGNER');

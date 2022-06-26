@@ -30,7 +30,7 @@ contract ERC721PermitEverywhereTest is TestUtils {
             ERC721PermitEverywhere.PermitTransferFrom memory permit,
             ERC721PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            dummyToken.asIERC721(),
+            IERC721(address(dummyToken)),
             address(spender),
             tokenId,
             false,
@@ -39,7 +39,7 @@ contract ERC721PermitEverywhereTest is TestUtils {
         );
         vm.prank(owner);
         spender.spend(
-            dummyToken.asIERC721(),
+            IERC721(address(dummyToken)),
             receiver,
             tokenId,
             permit,
@@ -57,7 +57,7 @@ contract ERC721PermitEverywhereTest is TestUtils {
             ERC721PermitEverywhere.PermitTransferFrom memory permit,
             ERC721PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            dummyToken.asIERC721(),
+            IERC721(address(dummyToken)),
             address(spender),
             tokenId,
             false,
@@ -68,7 +68,7 @@ contract ERC721PermitEverywhereTest is TestUtils {
         emit ERC721ReceiverReceived(bytes('ayyyy'));
         vm.prank(owner);
         spender.spendSafe(
-            dummyToken.asIERC721(),
+            IERC721(address(dummyToken)),
             receiver,
             tokenId,
             permit,
@@ -76,144 +76,176 @@ contract ERC721PermitEverywhereTest is TestUtils {
         );
         assertEq(dummyToken.ownerOf(tokenId), receiver);
     }
-    //
-    // function test_worksWithNonstandardERC20() public {
-    //     address receiver = _randomAddress();
-    //     nsDummyToken.mint(owner, 1e18);
-    //     vm.prank(owner);
-    //     nsDummyToken.approve(address(testContract), type(uint256).max);
-    //     (
-    //         ERC721PermitEverywhere.PermitTransferFrom memory permit,
-    //         ERC721PermitEverywhere.Signature memory permitSig
-    //     ) = _createSignedPermit(
-    //         IERC20(address(nsDummyToken)),
-    //         address(spender),
-    //         0.5e18,
-    //         block.timestamp,
-    //         testContract.currentNonce(owner)
-    //     );
-    //     vm.prank(owner);
-    //     spender.spend(
-    //         IERC20(address(nsDummyToken)),
-    //         receiver,
-    //         0.5e18,
-    //         permit,
-    //         permitSig
-    //     );
-    //     assertEq(nsDummyToken.balanceOf(receiver), 0.5e18);
-    // }
-    //
-    // function test_cannotSpendMoreThanPermit() public {
-    //     address receiver = _randomAddress();
-    //     dummyToken.mint(owner, 1e18);
-    //     vm.prank(owner);
-    //     dummyToken.approve(address(testContract), type(uint256).max);
-    //     (
-    //         ERC721PermitEverywhere.PermitTransferFrom memory permit,
-    //         ERC721PermitEverywhere.Signature memory permitSig
-    //     ) = _createSignedPermit(
-    //         dummyToken.asIERC721(),
-    //         address(spender),
-    //         0.5e18,
-    //         block.timestamp,
-    //         testContract.currentNonce(owner)
-    //     );
-    //     vm.expectRevert('EXCEEDS_PERMIT_AMOUNT');
-    //     vm.prank(owner);
-    //     spender.spend(
-    //         dummyToken.asIERC721(),
-    //         receiver,
-    //         0.5e18 + 1,
-    //         permit,
-    //         permitSig
-    //     );
-    // }
-    //
-    // function test_cannotSpendWrongSpender() public {
-    //     address receiver = _randomAddress();
-    //     dummyToken.mint(owner, 1e18);
-    //     vm.prank(owner);
-    //     dummyToken.approve(address(testContract), type(uint256).max);
-    //     (
-    //         ERC721PermitEverywhere.PermitTransferFrom memory permit,
-    //         ERC721PermitEverywhere.Signature memory permitSig
-    //     ) = _createSignedPermit(
-    //         dummyToken.asIERC721(),
-    //         address(_randomAddress()),
-    //         0.5e18,
-    //         block.timestamp,
-    //         testContract.currentNonce(owner)
-    //     );
-    //     vm.expectRevert('SPENDER_NOT_PERMITTED');
-    //     vm.prank(owner);
-    //     spender.spend(
-    //         dummyToken.asIERC721(),
-    //         receiver,
-    //         0.5e18,
-    //         permit,
-    //         permitSig
-    //     );
-    // }
-    //
-    // function test_cannotSpendWrongOwner() public {
-    //     address receiver = _randomAddress();
-    //     dummyToken.mint(owner, 1e18);
-    //     vm.prank(owner);
-    //     dummyToken.approve(address(testContract), type(uint256).max);
-    //     (
-    //         ERC721PermitEverywhere.PermitTransferFrom memory permit,
-    //         ERC721PermitEverywhere.Signature memory permitSig
-    //     ) = _createSignedPermit(
-    //         dummyToken.asIERC721(),
-    //         address(spender),
-    //         0.5e18,
-    //         block.timestamp,
-    //         testContract.currentNonce(owner)
-    //     );
-    //     vm.expectRevert('INVALID_SIGNER');
-    //     vm.prank(_randomAddress());
-    //     spender.spend(
-    //         dummyToken.asIERC721(),
-    //         receiver,
-    //         0.5e18,
-    //         permit,
-    //         permitSig
-    //     );
-    // }
-    //
-    // function test_cannotExecuteTwice() public {
-    //     address receiver = _randomAddress();
-    //     dummyToken.mint(owner, 1e18);
-    //     vm.prank(owner);
-    //     dummyToken.approve(address(testContract), type(uint256).max);
-    //     (
-    //         ERC721PermitEverywhere.PermitTransferFrom memory permit,
-    //         ERC721PermitEverywhere.Signature memory permitSig
-    //     ) = _createSignedPermit(
-    //         dummyToken.asIERC721(),
-    //         address(spender),
-    //         0.5e18,
-    //         block.timestamp,
-    //         testContract.currentNonce(owner)
-    //     );
-    //     vm.prank(owner);
-    //     spender.spend(
-    //         dummyToken.asIERC721(),
-    //         receiver,
-    //         0.5e18,
-    //         permit,
-    //         permitSig
-    //     );
-    //     vm.expectRevert('INVALID_SIGNER');
-    //     vm.prank(owner);
-    //     spender.spend(
-    //         dummyToken.asIERC721(),
-    //         receiver,
-    //         0.5e18,
-    //         permit,
-    //         permitSig
-    //     );
-    // }
+
+    function test_cannotSpendOtherTokenId() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(spender),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.expectRevert('TOKEN_ID_NOT_PERMITTED');
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId + 1,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_cannotSpendWrongSpender() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            _randomAddress(),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.expectRevert('SPENDER_NOT_PERMITTED');
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId + 1,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_cannotSpendWrongOwner() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(spender),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.expectRevert('INVALID_SIGNER');
+        vm.prank(_randomAddress());
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_cannotExecuteTwice() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(spender),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+        vm.expectRevert('INVALID_SIGNER');
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_canAllowAnyTokenId() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(spender),
+            uint256(_randomBytes32()),
+            true,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+        assertEq(dummyToken.ownerOf(tokenId), receiver);
+    }
+
+    function test_anySpender() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(0),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+        assertEq(dummyToken.ownerOf(tokenId), receiver);
+    }
 
     function _createSignedPermit(
         IERC721 token,

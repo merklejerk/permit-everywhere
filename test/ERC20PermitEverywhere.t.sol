@@ -46,6 +46,32 @@ contract ERC20PermitEverywhereTest is Test {
         assertEq(dummyToken.balanceOf(receiver), 0.5e18);
     }
 
+    function test_anySpender() public {
+        address receiver = _randomAddress();
+        dummyToken.mint(owner, 1e18);
+        vm.prank(owner);
+        dummyToken.approve(address(testContract), type(uint256).max);
+        (
+            ERC20PermitEverywhere.PermitTransferFrom memory permit,
+            ERC20PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC20(address(dummyToken)),
+            address(0),
+            0.5e18,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.prank(owner);
+        spender.spend(
+            IERC20(address(dummyToken)),
+            receiver,
+            0.5e18,
+            permit,
+            permitSig
+        );
+        assertEq(dummyToken.balanceOf(receiver), 0.5e18);
+    }
+
     function test_worksWithNonstandardERC20() public {
         address receiver = _randomAddress();
         nsDummyToken.mint(owner, 1e18);
