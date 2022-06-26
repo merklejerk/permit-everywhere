@@ -33,7 +33,7 @@ contract ERC721PermitEverywhere {
             address(this)
         ));
         TRANSFER_PERMIT_TYPEHASH =
-            keccak256('PermitTransferFrom(address token,address spender,uint256 tokenId,bool allowAnyTokenId,uint256 deadline)');
+            keccak256('PermitTransferFrom(address token,address spender,uint256 tokenId,bool allowAnyTokenId,uint256 deadline,uint256 nonce)');
     }
 
     function executePermitTransferFrom(
