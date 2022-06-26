@@ -4,7 +4,6 @@ pragma solidity >=0.8.15;
 /// @title ERC20PermitEverywhere
 /// @notice Enables permit-style approvals for all ERC20 tokens, 
 /// regardless of whether they implement EIP2612 or not.
-/// @author Modified from merklejerk (https://github.com/merklejerk/permit-everywhere)
 contract ERC20PermitEverywhere {
     bytes32 private immutable DOMAIN_SEPARATOR;
     bytes32 private immutable TRANSFER_PERMIT_TYPEHASH;
