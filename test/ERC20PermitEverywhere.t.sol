@@ -5,13 +5,13 @@ import "../src/ERC20PermitEverywhere.sol";
 
 import "forge-std/Test.sol";
 import "./DummyERC20.sol";
-import "./TestSpender.sol";
+import "./TestSpenderERC20.sol";
 
 contract ERC20PermitEverywhereTest is Test {
     DummyERC20 dummyToken = new DummyERC20();
     NonstandardDummyERC20 nsDummyToken = new NonstandardDummyERC20();
     ERC20PermitEverywhere testContract = new ERC20PermitEverywhere();
-    TestSpender spender = new TestSpender(testContract);
+    TestSpenderERC20 spender = new TestSpenderERC20(testContract);
     bytes32 ownerKey;
     address owner;
 

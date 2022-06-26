@@ -3,7 +3,7 @@ pragma solidity ^0.8;
 
 import "../src/ERC20PermitEverywhere.sol";
 
-contract TestSpender {
+contract TestSpenderERC20 {
     ERC20PermitEverywhere public immutable PERMIT_EVERYWHERE;
 
     constructor(ERC20PermitEverywhere pe) {
