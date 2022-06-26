@@ -44,7 +44,7 @@ contract ERC20PermitEverywhere {
     )
         external
     {
-        require(permit.spender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
+        require(msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
         require(permit.deadline >= block.timestamp, 'PERMIT_EXPIRED');
         require(permit.maxAmount >= amount, 'EXCEEDS_PERMIT_AMOUNT');
         uint256 nonce = currentNonce[owner]++;

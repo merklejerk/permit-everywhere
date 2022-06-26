@@ -97,7 +97,7 @@ contract ERC721PermitEverywhere {
     )
         private
     {
-        require(permit.spender == address(0) || msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
+        require(msg.sender == permit.spender, 'SPENDER_NOT_PERMITTED');
         require(permit.allowAnyTokenId || permit.tokenId == tokenId, 'TOKEN_ID_NOT_PERMITTED');
         require(permit.deadline >= block.timestamp, 'PERMIT_EXPIRED');
         uint256 nonce = currentNonce[owner]++;

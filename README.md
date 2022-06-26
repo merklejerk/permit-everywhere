@@ -27,7 +27,7 @@ The permit message itself is defined as:
 struct PermitTransferFrom {
     // The token to transfer.
     address token;
-    // Who can execute this permit. If 0, anyone can.
+    // Who can execute this permit.
     address spender;
     // Maximum amount of tokens to move.
     uint256 maxAmount;
@@ -56,7 +56,7 @@ The permit message itself is defined as:
 struct PermitTransferFrom {
     // The token to transfer.
     address token;
-    // Who can execute this permit. If 0, anyone can.
+    // Who can execute this permit.
     address spender;
     // The NFT token ID that can be moved. Ignored if allowAnyTokenId is true.
     uint256 tokenId;

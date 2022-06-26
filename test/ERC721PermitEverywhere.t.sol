@@ -220,33 +220,6 @@ contract ERC721PermitEverywhereTest is TestUtils {
         assertEq(dummyToken.ownerOf(tokenId), receiver);
     }
 
-    function test_anySpender() public {
-        address receiver = address(new ERC721Receiver());
-        uint256 tokenId = dummyToken.mint(owner);
-        vm.prank(owner);
-        dummyToken.setApprovalForAll(address(testContract), true);
-        (
-            ERC721PermitEverywhere.PermitTransferFrom memory permit,
-            ERC721PermitEverywhere.Signature memory permitSig
-        ) = _createSignedPermit(
-            IERC721(address(dummyToken)),
-            address(0),
-            tokenId,
-            false,
-            block.timestamp,
-            testContract.currentNonce(owner)
-        );
-        vm.prank(owner);
-        spender.spend(
-            IERC721(address(dummyToken)),
-            receiver,
-            tokenId,
-            permit,
-            permitSig
-        );
-        assertEq(dummyToken.ownerOf(tokenId), receiver);
-    }
-
     function _createSignedPermit(
         IERC721 token,
         address spender_,
