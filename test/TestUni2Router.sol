@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8;
 
+import "solmate/tokens/ERC20.sol";
+
 import "../src/ERC20PermitEverywhere.sol";
 
 interface IUniswapV2Router {
@@ -38,7 +40,7 @@ contract TestUni2Router {
             permit,
             permitSig
         );
-        permit.token.approve(address(ROUTER), type(uint256).max);
+        ERC20(permit.token).approve(address(ROUTER), type(uint256).max);
         amounts = ROUTER.swapExactTokensForETH(
             amountIn,
             amountOutMin,

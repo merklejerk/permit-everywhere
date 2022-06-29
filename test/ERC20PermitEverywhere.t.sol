@@ -10,6 +10,7 @@ import "./TestSpenderERC20.sol";
 contract ERC20PermitEverywhereTest is Test {
     DummyERC20 dummyToken = new DummyERC20();
     NonstandardDummyERC20 nsDummyToken = new NonstandardDummyERC20();
+    Nonstandard2DummyERC20 nsDummyToken2 = new Nonstandard2DummyERC20();
     ERC20PermitEverywhere testContract = new ERC20PermitEverywhere();
     TestSpenderERC20 spender = new TestSpenderERC20(testContract);
     bytes32 ownerKey;
@@ -29,7 +30,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(dummyToken)),
+            dummyToken,
             address(spender),
             0.5e18,
             block.timestamp,
@@ -37,7 +38,7 @@ contract ERC20PermitEverywhereTest is Test {
         );
         vm.prank(owner);
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18,
             permit,
@@ -55,7 +56,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(nsDummyToken)),
+            nsDummyToken,
             address(spender),
             0.5e18,
             block.timestamp,
@@ -63,13 +64,93 @@ contract ERC20PermitEverywhereTest is Test {
         );
         vm.prank(owner);
         spender.spend(
-            IERC20(address(nsDummyToken)),
+            nsDummyToken,
             receiver,
             0.5e18,
             permit,
             permitSig
         );
         assertEq(nsDummyToken.balanceOf(receiver), 0.5e18);
+    }
+
+    function test_worksWithNonstandard2ERC20() public {
+        address receiver = _randomAddress();
+        nsDummyToken2.mint(owner, 1e18);
+        vm.prank(owner);
+        nsDummyToken2.approve(address(testContract), type(uint256).max);
+        (
+            ERC20PermitEverywhere.PermitTransferFrom memory permit,
+            ERC20PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            nsDummyToken2,
+            address(spender),
+            0.5e18,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        vm.prank(owner);
+        spender.spend(
+            nsDummyToken2,
+            receiver,
+            0.5e18,
+            permit,
+            permitSig
+        );
+        assertEq(nsDummyToken2.balanceOf(receiver), 0.5e18);
+    }
+
+    function test_worksERC20Reverting() public {
+        address receiver = _randomAddress();
+        dummyToken.mint(owner, 1e18);
+        vm.prank(owner);
+        dummyToken.approve(address(testContract), type(uint256).max);
+        (
+            ERC20PermitEverywhere.PermitTransferFrom memory permit,
+            ERC20PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            dummyToken,
+            address(spender),
+            0.5e18,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        dummyToken.setSucceeds(false);
+        vm.expectRevert('yikes');
+        vm.prank(owner);
+        spender.spend(
+            dummyToken,
+            receiver,
+            0.5e18,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_worksWithNonstandard2ERC20_returningFalse() public {
+        address receiver = _randomAddress();
+        nsDummyToken2.mint(owner, 1e18);
+        vm.prank(owner);
+        nsDummyToken2.approve(address(testContract), type(uint256).max);
+        (
+            ERC20PermitEverywhere.PermitTransferFrom memory permit,
+            ERC20PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            nsDummyToken2,
+            address(spender),
+            0.5e18,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        nsDummyToken2.setSucceeds(false);
+        vm.expectRevert('ERC20_TRANSFER_FROM_FAILED');
+        vm.prank(owner);
+        spender.spend(
+            nsDummyToken2,
+            receiver,
+            0.5e18,
+            permit,
+            permitSig
+        );
     }
 
     function test_cannotSpendMoreThanPermit() public {
@@ -81,7 +162,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(dummyToken)),
+            dummyToken,
             address(spender),
             0.5e18,
             block.timestamp,
@@ -90,9 +171,36 @@ contract ERC20PermitEverywhereTest is Test {
         vm.expectRevert('EXCEEDS_PERMIT_AMOUNT');
         vm.prank(owner);
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18 + 1,
+            permit,
+            permitSig
+        );
+    }
+
+    function test_cannotSpendExpired() public {
+        address receiver = _randomAddress();
+        dummyToken.mint(owner, 1e18);
+        vm.prank(owner);
+        dummyToken.approve(address(testContract), type(uint256).max);
+        (
+            ERC20PermitEverywhere.PermitTransferFrom memory permit,
+            ERC20PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            dummyToken,
+            address(spender),
+            0.5e18,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        skip(1);
+        vm.expectRevert('PERMIT_EXPIRED');
+        vm.prank(owner);
+        spender.spend(
+            dummyToken,
+            receiver,
+            0.5e18,
             permit,
             permitSig
         );
@@ -107,7 +215,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(dummyToken)),
+            dummyToken,
             address(_randomAddress()),
             0.5e18,
             block.timestamp,
@@ -116,7 +224,7 @@ contract ERC20PermitEverywhereTest is Test {
         vm.expectRevert('SPENDER_NOT_PERMITTED');
         vm.prank(owner);
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18,
             permit,
@@ -133,7 +241,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(dummyToken)),
+            dummyToken,
             address(spender),
             0.5e18,
             block.timestamp,
@@ -142,7 +250,7 @@ contract ERC20PermitEverywhereTest is Test {
         vm.expectRevert('INVALID_SIGNER');
         vm.prank(_randomAddress());
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18,
             permit,
@@ -159,7 +267,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.PermitTransferFrom memory permit,
             ERC20PermitEverywhere.Signature memory permitSig
         ) = _createSignedPermit(
-            IERC20(address(dummyToken)),
+            dummyToken,
             address(spender),
             0.5e18,
             block.timestamp,
@@ -167,7 +275,7 @@ contract ERC20PermitEverywhereTest is Test {
         );
         vm.prank(owner);
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18,
             permit,
@@ -176,7 +284,7 @@ contract ERC20PermitEverywhereTest is Test {
         vm.expectRevert('INVALID_SIGNER');
         vm.prank(owner);
         spender.spend(
-            IERC20(address(dummyToken)),
+            dummyToken,
             receiver,
             0.5e18,
             permit,
@@ -185,7 +293,7 @@ contract ERC20PermitEverywhereTest is Test {
     }
 
     function _createSignedPermit(
-        IERC20 token,
+        ERC20 token,
         address spender_,
         uint256 maxAmount,
         uint256 deadline,
@@ -197,7 +305,7 @@ contract ERC20PermitEverywhereTest is Test {
             ERC20PermitEverywhere.Signature memory sig
         )
     {
-        permit.token = token;
+        permit.token = address(token);
         permit.spender = spender_;
         permit.maxAmount = maxAmount;
         permit.deadline = deadline;
