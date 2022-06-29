@@ -145,14 +145,10 @@ contract ERC721PermitEverywhere {
         require(permit.allowAnyTokenId || permit.tokenId == tokenId, 'TOKEN_ID_NOT_PERMITTED');
         require(permit.deadline >= block.timestamp, 'PERMIT_EXPIRED');
 
-        // Unchecked because the only math done is incrementing
-        // the nonce which cannot realistically overflow.
-        unchecked {
-            require(
-                from == _getSigner(hashPermit(permit, currentNonce[from]++), sig),
-                'INVALID_SIGNER'
-            );
-        }
+        require(
+            from == _getSigner(hashPermit(permit, currentNonce[from]++), sig),
+            'INVALID_SIGNER'
+        );
     }
 
     function _getSigner(bytes32 hash, Signature memory sig) private pure returns (address signer) {

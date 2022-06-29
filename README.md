@@ -5,7 +5,7 @@ Users simply need set an allowance on the `ERC20PermitEverywhere` contract (for 
 
 ## Addresses
 - `ERC20PermitEverywhere` is deployed at `0xeee20efDe3b7222561CB29b03aa62d3f1368fba2` on Ethereum, Polygon, Optimism, Arbitrum, Rinkeby, and Ropsten.
-- `ERC721PermitEverywhere` is deployed at `0xEEE721e82c47fB50d0209Ef0b2455A592Cb2F422` on Ethereum, Polygon, Optimism, Arbitrum, Rinkeby, and Ropsten.
+- `ERC721PermitEverywhere` is deployed at `0xEEe721c6f50d0223D4c19CA30Cf9F448E5B17426` on Ethereum, Polygon, Optimism, Arbitrum, Rinkeby, and Ropsten.
 - (ERC1155 coming soon).
 
 ## Permit Messages
