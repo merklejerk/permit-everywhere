@@ -74,7 +74,7 @@ contract Uni2RouterForkedTest is Test {
             ERC20PermitEverywhere.Signature memory sig
         )
     {
-        permit.token = IERC20(address(token));
+        permit.token = address(token);
         permit.spender = spender_;
         permit.maxAmount = maxAmount;
         permit.deadline = deadline;

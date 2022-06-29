@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8;
 
+import "solmate/tokens/ERC20.sol";
+
 import "../src/ERC20PermitEverywhere.sol";
 
 contract TestSpenderERC20 {
@@ -11,7 +13,7 @@ contract TestSpenderERC20 {
     }
 
     function spend(
-        IERC20 token,
+        ERC20 token,
         address to,
         uint256 amount,
         ERC20PermitEverywhere.PermitTransferFrom memory permit,
@@ -19,7 +21,7 @@ contract TestSpenderERC20 {
     )
         external
     {
-        require(permit.token == token, 'WRONG_TOKEN');
+        require(permit.token == address(token), 'WRONG_TOKEN');
         PERMIT_EVERYWHERE.executePermitTransferFrom(
             msg.sender,
             to,

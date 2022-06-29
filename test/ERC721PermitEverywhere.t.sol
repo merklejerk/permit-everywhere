@@ -104,6 +104,34 @@ contract ERC721PermitEverywhereTest is TestUtils {
         );
     }
 
+    function test_cannotSpendExpired() public {
+        address receiver = address(new ERC721Receiver());
+        uint256 tokenId = dummyToken.mint(owner);
+        vm.prank(owner);
+        dummyToken.setApprovalForAll(address(testContract), true);
+        (
+            ERC721PermitEverywhere.PermitTransferFrom memory permit,
+            ERC721PermitEverywhere.Signature memory permitSig
+        ) = _createSignedPermit(
+            IERC721(address(dummyToken)),
+            address(spender),
+            tokenId,
+            false,
+            block.timestamp,
+            testContract.currentNonce(owner)
+        );
+        skip(1);
+        vm.expectRevert('PERMIT_EXPIRED');
+        vm.prank(owner);
+        spender.spend(
+            IERC721(address(dummyToken)),
+            receiver,
+            tokenId,
+            permit,
+            permitSig
+        );
+    }
+
     function test_cannotSpendWrongSpender() public {
         address receiver = address(new ERC721Receiver());
         uint256 tokenId = dummyToken.mint(owner);
