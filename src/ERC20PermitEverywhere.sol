@@ -71,14 +71,10 @@ contract ERC20PermitEverywhere {
         require(permit.deadline >= block.timestamp, 'PERMIT_EXPIRED');
         require(permit.maxAmount >= amount, 'EXCEEDS_PERMIT_AMOUNT');
 
-        // Unchecked because the only math done is incrementing
-        // the nonce which cannot realistically overflow.
-        unchecked {
-            require(
-                from == _getSigner(hashPermit(permit, currentNonce[from]++), sig),
-                'INVALID_SIGNER'
-            );
-        }
+        require(
+            from == _getSigner(hashPermit(permit, currentNonce[from]++), sig),
+            'INVALID_SIGNER'
+        );
 
         _transferFrom(permit.token, from, to, amount);
     }
