@@ -19,7 +19,7 @@ The `EIP712Domain` fields for `ERC20PermitEverywhere` messages are as follows:
         name: 'ERC20PermitEverywhere',
         version: '1.0.0',
         chainId: TARGET_CHAIN_ID,
-        verifyingContract: 0xeee20AA331e2F68D3Ce44Dca37eB066A3F34f4ed
+        verifyingContract: 0xeee20efDe3b7222561CB29b03aa62d3f1368fba2
     })
 ```
 
@@ -48,7 +48,7 @@ The `EIP712Domain` fields for `ERC20PermitEverywhere` messages are as follows:
         name: 'ERC721PermitEverywhere',
         version: '1.0.0',
         chainId: TARGET_CHAIN_ID,
-        verifyingContract: 0xEEE721e82c47fB50d0209Ef0b2455A592Cb2F422
+        verifyingContract: 0xEEe721c6f50d0223D4c19CA30Cf9F448E5B17426
     })
 ```
 
