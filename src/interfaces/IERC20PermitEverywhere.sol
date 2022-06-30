@@ -22,8 +22,8 @@ interface IERC20PermitEverywhere {
         address owner,
         address to,
         uint256 tokenId,
-        PermitTransferFrom memory permit,
-        Signature memory sig
+        PermitTransferFrom calldata permit,
+        Signature calldata sig
     )
         external;
 }
