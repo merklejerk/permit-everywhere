@@ -34,9 +34,6 @@ struct PermitTransferFrom {
     uint256 maxAmount;
     // Timestamp after which this permit is no longer valid.
     uint256 deadline;
-    // The nonce for the signer of this permit.
-    // The current nonce can be retrieved through ERC20PermitEverywhere.currentNonce().
-    uint256 nonce;
 }
 ```
 
@@ -65,9 +62,6 @@ struct PermitTransferFrom {
     bool allowAnyTokenId;
     // Timestamp after which this permit is no longer valid.
     uint256 deadline;
-    // The nonce for the signer of this permit.
-    // The current nonce can be retrieved through ERC721PermitEverywhere.currentNonce().
-    uint256 nonce;
 }
 ```
 
@@ -77,11 +71,11 @@ For ERC20 permits, protocols can burn a user's permit message and execute an eli
 
 ```solidity
     function executePermitTransferFrom(
-        address owner,
+        address from,
         address to,
-        uint256 tokenId,
-        PermitTransferFrom memory permit,
-        Signature memory sig
+        uint256 amount,
+        PermitTransferFrom calldata permit,
+        Signature calldata sig
     )
         external;
 ```
@@ -89,13 +83,24 @@ For ERC20 permits, protocols can burn a user's permit message and execute an eli
 For ERC721 permits, protocols can burn a user's permit message and execute an eligible transfer by calling either `ERC721PermitEverywhere.executePermitTransferFrom()` or `ERC721PermitEverywhere.executePermitSafeTransferFrom()`, which are declared as follows:
 
 ```solidity
-    function executePermitSafeTransferFrom(
-        address owner,
+    function executePermitTransferFrom(
+        address from,
         address to,
         uint256 tokenId,
-        bytes memory data,
-        PermitTransferFrom memory permit,
-        Signature memory sig
+        PermitTransferFrom calldata permit,
+        Signature calldata sig
+    )
+        external
+```
+
+```solidity
+    function executePermitSafeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes calldata data,
+        PermitTransferFrom calldata permit,
+        Signature calldata sig
     )
         external;
 ```
