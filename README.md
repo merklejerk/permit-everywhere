@@ -34,6 +34,9 @@ struct PermitTransferFrom {
     uint256 maxAmount;
     // Timestamp after which this permit is no longer valid.
     uint256 deadline;
+    // The nonce for the signer of this permit.
+    // The current nonce can be retrieved through ERC20PermitEverywhere.currentNonce().
+    uint256 nonce;
 }
 ```
 
@@ -62,6 +65,9 @@ struct PermitTransferFrom {
     bool allowAnyTokenId;
     // Timestamp after which this permit is no longer valid.
     uint256 deadline;
+    // The nonce for the signer of this permit.
+    // The current nonce can be retrieved through ERC721PermitEverywhere.currentNonce().
+    uint256 nonce;
 }
 ```
 
