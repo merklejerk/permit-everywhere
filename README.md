@@ -1,3 +1,5 @@
+*NOTICE: This project eventually became the basis for [Uniswap's Permit2](https://github.com/Uniswap/permit2), which supercedes this project in scope. Unless you need a really a lean/gas-optimized implementation provided by this solution, you'll probably want to use Permit2 👈*
+
 # PermitEverywhere
 PermitEverywhere is a set of contracts that enable permit style approvals for all ERC20 and ERC721 tokens, regardless of whether they implement EIP2612 or not.
 
